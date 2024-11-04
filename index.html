@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>網站開發進度追踪</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <style>
+        .scale-102 {
+            transform: scale(1.02);
+        }
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="app"></div>
+
+    <script type="text/babel">
+        const App = () => {
+            const [config, setConfig] = React.useState(null);
+            const [hoveredStage, setHoveredStage] = React.useState(null);
+            const [currentStage, setCurrentStage] = React.useState(0);
+            const [progress, setProgress] = React.useState(0);
+
+            React.useEffect(() => {
+                fetch('https://raw.githubusercontent.com/8866Jason/project-tracker/main/config.json')
+                    .then(res => res.json())
+                    .then(data => {
+                        setConfig(data);
+                        setProgress(((currentStage + 1) / data.stages.length) * 100);
+                    });
+            }, [currentStage]);
+
+            if (!config) {
+                return (
+                    <div className="flex justify-center items-center min-h-screen">
+                        <div className="text-xl">載入中...</div>
+                    </div>
+                );
+            }
+
+            const getStatusColor = (status) => {
+                switch(status) {
+                    case '完成': return 'text-green-500';
+                    case '重要': return 'text-red-500';
+                    case '進行中': return 'text-blue-500';
+                    default: return 'text-gray-400';
+                }
+            };
+
+            return (
+                <div className="p-8 max-w-4xl mx-auto bg-white rounded-2xl shadow-xl">
+                    {/* Logo */}
+                    <div className="flex justify-center mb-4">
+                        <img 
+                            src={config.logo}
+                            alt="WPW Design Logo" 
+                            className="h-[50px] w-auto object-contain"
+                        />
+                    </div>
+                    <h2 className="text-3xl font-bold mb-8 text-center">{config.title}</h2>
+                    
+                    {/* 進度條 */}
+                    <div className="mb-10 relative">
+                        <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-green-500 transition-all duration-1000"
+                                style={{width: `${progress}%`}}
+                            />
+                        </div>
+                        <div className="flex justify-between mt-2 text-sm text-gray-600">
+                            <span>開始</span>
+                            <span>{Math.round(progress)}% 完成</span>
+                            <span>結案</span>
+                        </div>
+                    </div>
+
+                    {/* 階段卡片 */}
+                    <div className="space-y-6">
+                        {config.stages.map((stage, idx) => (
+                            <div
+                                key={stage.phase}
+                                className={`border-2 rounded-xl p-6 transition-all duration-500 transform card
+                                    ${hoveredStage === idx ? 'scale-102 shadow-lg' : ''} 
+                                    ${currentStage === idx ? `border-${stage.color}-500 bg-${stage.color}-50` : 'border-gray-200'}
+                                    cursor-pointer`}
+                                onMouseEnter={() => setHoveredStage(idx)}
+                                onMouseLeave={() => setHoveredStage(null)}
+                                onClick={() => setCurrentStage(idx)}
+                            >
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className={`text-xl font-bold ${currentStage === idx ? `text-${stage.color}-700` : 'text-gray-700'}`}>
+                                        {stage.phase}
+                                    </h3>
+                                    {stage.amount && (
+                                        <span className={`bg-${stage.color}-500 text-white px-4 py-2 rounded-full 
+                                            text-sm font-medium transition-transform duration-300 transform hover:scale-105`}>
+                                            {stage.amount}
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    {stage.steps.map((step) => (
+                                        <div 
+                                            key={step.name}
+                                            className={`flex items-center justify-between p-4 rounded-lg
+                                                ${currentStage === idx ? `bg-${stage.color}-100/50` : 'bg-gray-50'}
+                                                transition-all duration-300`}
+                                        >
+                                            <div className="flex items-center">
+                                                <div className={`w-4 h-4 rounded-full mr-3 
+                                                    ${currentStage > idx ? `bg-${stage.color}-500` : 
+                                                    currentStage === idx ? `bg-${stage.color}-400` : 'bg-gray-300'}
+                                                    transition-all duration-300`} 
+                                                />
+                                                <span className="font-medium">{step.name}</span>
+                                            </div>
+                                            <span className={`text-sm ${getStatusColor(step.status)}`}>
+                                                {step.status}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* 控制按鈕 */}
+                    <div className="mt-8 flex justify-center space-x-4">
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentStage(Math.max(0, currentStage - 1));
+                            }}
+                            className="flex items-center space-x-2 px-6 py-3 bg-gray-600 text-white rounded-lg
+                                hover:bg-gray-700 transition-colors duration-300 disabled:opacity-50"
+                            disabled={currentStage === 0}
+                        >
+                            <span>上一階段</span>
+                        </button>
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentStage(Math.min(config.stages.length - 1, currentStage + 1));
+                            }}
+                            className="flex items-center space-x-2 px-6 py-3 bg-blue-500 text-white rounded-lg
+                                hover:bg-blue-600 transition-colors duration-300 disabled:opacity-50"
+                            disabled={currentStage === config.stages.length - 1}
+                        >
+                            <span>下一階段</span>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('app'));
+    </script>
+</body>
+</html>
