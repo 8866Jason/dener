@@ -1,0 +1,36 @@
+{
+  "logo": "https://raw.githubusercontent.com/8866Jason/project-tracker/main/wpw-logo-s%20(2).png",
+  "title": "德內ㄦ網站開發進度追踪",
+  "stages": [
+    {
+      "phase": "階段一：專案啟動",
+      "amount": "NT$19,425",
+      "color": "blue",
+      "steps": [
+        { "name": "合約簽訂", "status": "待執行" },
+        { "name": "首期付款確認", "status": "重要" },
+        { "name": "雲端環境建置", "status": "準備中" }
+      ]
+    },
+    {
+      "phase": "階段二：開發階段",
+      "amount": "",
+      "color": "indigo",
+      "steps": [
+        { "name": "前台網站設計", "status": "準備中" },
+        { "name": "後台功能開發", "status": "準備中" },
+        { "name": "資料庫建置", "status": "準備中" }
+      ]
+    },
+    {
+      "phase": "階段三：完成驗收",
+      "amount": "NT$19,425",
+      "color": "green",
+      "steps": [
+        { "name": "功能測試", "status": "準備中" },
+        { "name": "結案驗收", "status": "準備中" },
+        { "name": "教學訓練", "status": "準備中" }
+      ]
+    }
+  ]
+}
